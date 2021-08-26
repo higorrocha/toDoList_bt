@@ -14,22 +14,32 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _listTodo = [];
+  TextEditingController _controllerTask = TextEditingController();
 
   Future<File> _getFile() async {
     final directory = await getApplicationDocumentsDirectory();
     return File("${directory.path}/data.json");
   }
 
+  _saveTask() {
+    String? textWritten = _controllerTask.text;
+
+    Map<String, dynamic> task = Map();
+    task["Title"] = textWritten;
+    task["done"] = false;
+
+    setState(() {
+      _listTodo.add(task);
+    });
+    _saveFile();
+    _controllerTask.text = "";
+  }
+
   _saveFile() async {
 
     var file = await _getFile();
 
-    Map<String, dynamic> task = Map();
-    task["Title"] = "Go to the market";
-    task["done"] = false;
-    _listTodo.add(task);
-
-    String data = json.encode(_listTodo);
+    String? data = json.encode(_listTodo);
     file.writeAsString(data);
   }
 
@@ -38,7 +48,7 @@ class _HomeState extends State<Home> {
       final file = await _getFile();
       return file.readAsString();
     }catch(e){
-      return null;
+      return "nullo";
     }
   }
 
@@ -71,6 +81,7 @@ class _HomeState extends State<Home> {
                 return AlertDialog(
                   title: Text("Add Tasks"),
                   content: TextField(
+                    controller: _controllerTask,
                     decoration: InputDecoration(
                       labelText: "Type your task"
                     ),
@@ -85,6 +96,7 @@ class _HomeState extends State<Home> {
                     ),
                     TextButton(
                         onPressed: (){
+                          _saveTask();
                           Navigator.pop(context);
                         },
                         child: Text("Save")
@@ -101,8 +113,15 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
                 itemCount: _listTodo.length,
                 itemBuilder: (context, index){
-                  return ListTile(
-                    title: Text( _listTodo[index]["Title"] ),
+                  return CheckboxListTile(
+                      title: Text(_listTodo[index]["title"]),
+                      value: _listTodo[index]["done"],
+                      onChanged: (valueChanged) {
+                        setState(() {
+                          _listTodo[index]["done"] = valueChanged;
+                        });
+                        _saveFile();
+                      }
                   );
                 }
             ),
