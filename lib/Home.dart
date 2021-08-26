@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -9,7 +13,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  List _listTodo = ["Te","Tee","TEEE"];
+  List _listTodo = [];
+
+  _saveFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    var file = File("${directory.path}/data.json");
+
+    Map<String, dynamic> task = Map();
+    task["Title"] = "Go to the market";
+    task["done"] = false;
+    _listTodo.add(task);
+
+    String data = json.encode(_listTodo);
+    file.writeAsString(data);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +73,14 @@ class _HomeState extends State<Home> {
       body: Column(
         children: [
           Expanded(
-              child: ListView.builder(
-                  itemBuilder: (context, index){
-                    return ListTile(
-                      title:Text(_listTodo[index]),
-                    );
-                  }
-              ),
+            child: ListView.builder(
+                itemCount: _listTodo.length,
+                itemBuilder: (context, index){
+                  return ListTile(
+                    title: Text( _listTodo[index] ),
+                  );
+                }
+            ),
           )
         ],
       ),
