@@ -15,9 +15,14 @@ class _HomeState extends State<Home> {
 
   List _listTodo = [];
 
-  _saveFile() async {
+  Future<File> _getFile() async {
     final directory = await getApplicationDocumentsDirectory();
-    var file = File("${directory.path}/data.json");
+    return File("${directory.path}/data.json");
+  }
+
+  _saveFile() async {
+
+    var file = await _getFile();
 
     Map<String, dynamic> task = Map();
     task["Title"] = "Go to the market";
@@ -26,6 +31,26 @@ class _HomeState extends State<Home> {
 
     String data = json.encode(_listTodo);
     file.writeAsString(data);
+  }
+
+  _readFile() async {
+    try{
+      final file = await _getFile();
+      return file.readAsString();
+    }catch(e){
+      return null;
+    }
+  }
+
+  @override
+  void initState(){
+    super.initState();
+
+    _readFile().then((data){
+      setState(() {
+        _listTodo = json.decode(data);
+      });
+    });
   }
 
   @override
@@ -77,7 +102,7 @@ class _HomeState extends State<Home> {
                 itemCount: _listTodo.length,
                 itemBuilder: (context, index){
                   return ListTile(
-                    title: Text( _listTodo[index] ),
+                    title: Text( _listTodo[index]["Title"] ),
                   );
                 }
             ),
