@@ -13,7 +13,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  List _listTodo = ["First","Second"];
+  List _listTodo = [];
+  Map<String, dynamic> _lastTaskRemoved = Map();
   TextEditingController _controllerTask = TextEditingController();
 
   Future<File> _getFile() async {
@@ -68,12 +69,34 @@ class _HomeState extends State<Home> {
     final item = _listTodo[index]["Title"];
 
     return Dismissible(
-        key: Key(item),
+        key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
         direction: DismissDirection.endToStart,
         onDismissed: (direction){
-          
+
+          _lastTaskRemoved = _listTodo[index];
+
           _listTodo.removeAt(index);
           _saveFile();
+
+          //snackbar
+          final snackbar = SnackBar(
+            //backgroundColor: Colors.green,
+            duration: Duration(seconds: 5),
+            content: Text("Task removed!"),
+            action: SnackBarAction(
+                label: "Undo",
+                onPressed: (){
+
+                  setState(() {
+                    _listTodo.insert(index, _lastTaskRemoved);
+                  });
+                  _saveFile();
+
+                }
+            ),
+          );
+
+          Scaffold.of(context).showSnackBar(snackbar);
 
         },
         background: Container(
