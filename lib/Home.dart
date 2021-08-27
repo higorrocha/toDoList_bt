@@ -13,7 +13,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  List _listTodo = [];
+  List _listTodo = ["First","Second"];
   TextEditingController _controllerTask = TextEditingController();
 
   Future<File> _getFile() async {
@@ -22,7 +22,7 @@ class _HomeState extends State<Home> {
   }
 
   _saveTask() {
-    String? textWritten = _controllerTask.text;
+    String textWritten = _controllerTask.text;
 
     Map<String, dynamic> task = Map();
     task["Title"] = textWritten;
@@ -39,7 +39,7 @@ class _HomeState extends State<Home> {
 
     var file = await _getFile();
 
-    String? data = json.encode(_listTodo);
+    String data = json.encode(_listTodo);
     file.writeAsString(data);
   }
 
@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
       final file = await _getFile();
       return file.readAsString();
     }catch(e){
-      return "nullo";
+      return "";
     }
   }
 
@@ -62,6 +62,50 @@ class _HomeState extends State<Home> {
       });
     });
   }
+
+  Widget createItemList(context, index){
+
+    final item = _listTodo[index]["Title"];
+
+    return Dismissible(
+        key: Key(item),
+        direction: DismissDirection.endToStart,
+        onDismissed: (direction){
+          
+          _listTodo.removeAt(index);
+          _saveFile();
+
+        },
+        background: Container(
+          color: Colors.red,
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Icon(
+                Icons.delete,
+                color: Colors.white,
+              )
+            ],
+          ),
+        ),
+        child: CheckboxListTile(
+          title: Text( _listTodo[index]['Title'] ),
+          value: _listTodo[index]['realizada'],
+          onChanged: (valueChanged){
+
+            setState(() {
+              _listTodo[index]['realizada'] = valueChanged;
+            });
+
+            _saveFile();
+
+          },
+        )
+    );
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,18 +156,7 @@ class _HomeState extends State<Home> {
           Expanded(
             child: ListView.builder(
                 itemCount: _listTodo.length,
-                itemBuilder: (context, index){
-                  return CheckboxListTile(
-                      title: Text(_listTodo[index]["title"]),
-                      value: _listTodo[index]["done"],
-                      onChanged: (valueChanged) {
-                        setState(() {
-                          _listTodo[index]["done"] = valueChanged;
-                        });
-                        _saveFile();
-                      }
-                  );
-                }
+                itemBuilder: createItemList
             ),
           )
         ],
